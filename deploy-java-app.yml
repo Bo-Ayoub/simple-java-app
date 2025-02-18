@@ -1,0 +1,55 @@
+---
+- name: Deploy Java Application
+  hosts: vm1  
+  become: true 
+  
+  tasks:
+    - name: Install Java 17 and dependencies
+      ansible.builtin.apt:
+        name:
+          - openjdk-17-jdk
+          - maven
+        state: present
+        update_cache: yes
+
+    - name: Ensure /opt/app directory exists
+      ansible.builtin.file:
+        path: /opt/app
+        state: directory
+        mode: '0755'
+
+    - name: Download Java application from GitHub
+      ansible.builtin.git:
+        repo: "https://github.com/Bo-Ayoub/simple-java-app.git"
+        dest: /opt/app
+        version: main  
+
+    - name: Copy JAR file to deployment directory
+      ansible.builtin.copy:
+        src: /opt/app/target/app.jar  
+        dest: /opt/app/app.jar
+        remote_src: yes
+        mode: '0755'
+
+    - name: Create systemd service for the Java application
+      ansible.builtin.template:
+        src: app.service.j2
+        dest: /etc/systemd/system/app.service
+        mode: '0644'
+
+    - name: Reload systemd daemon
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Enable and start the application service
+      ansible.builtin.systemd:
+        name: app
+        enabled: true
+        state: started
+
+    - name: Ensure the application is accessible on port 8080
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: 8080
+        jump: ACCEPT
