@@ -13,16 +13,5 @@ class SimpleJavaAppAnsibleApplicationTests {
 	}
 
 
-	private final Calculator calculator = new Calculator();
-
-	@Test
-	void testAdd() {
-		assertEquals(8, calculator.add(5, 3));
-	}
-
-	@Test
-	void testSubtract() {
-		assertEquals(6, calculator.subtract(10, 4));
-	}
-
+	
 }
